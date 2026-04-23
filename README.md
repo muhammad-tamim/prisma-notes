@@ -17,6 +17,19 @@
       - [Select:](#select)
       - [include:](#include)
       - [skipDuplicates (Only for createMany):](#skipduplicates-only-for-createmany)
+  - [READ(GET):](#readget)
+    - [findMany():](#findmany)
+    - [findUnique():](#findunique)
+    - [findUniqueOrThrow():](#finduniqueorthrow)
+    - [findFirst():](#findfirst)
+    - [findFirstOrThrow():](#findfirstorthrow)
+    - [count():](#count)
+    - [Common read options:](#common-read-options)
+      - [WHERE:](#where)
+      - [orderBy:](#orderby)
+      - [take and skip:](#take-and-skip)
+      - [DISTINCT:](#distinct)
+    - [aggregate():](#aggregate)
 
 # Setup and Installation: 
 - Step 1: Install dependencies
@@ -464,3 +477,403 @@ await prisma.user.createMany({
 ```
 
 here, only one data will be created
+
+## READ(GET):
+### findMany():
+Fetch multiple records (most used query in Prisma)
+
+```js
+app.get("/users", async (_req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany();
+
+        res.send({
+            success: true,
+            message: "Users fetched",
+            data: users,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+### findUnique():
+
+```js
+app.get("/users/:id", async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User fetched",
+            data: user,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+### findUniqueOrThrow():
+
+Same as findUnique(), but throws error if not found
+
+```js
+app.get("/users/:id", async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User fetched",
+            data: user,
+        });
+
+    } catch (error: any) {
+        res.status(404).send({
+            success: false,
+            message: "User not found",
+        });
+    }
+});
+```
+
+### findFirst():
+Fetch first matching record based on filter
+
+```js
+app.get("/users", async (_req: Request, res: Response) => {
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                name: "Tamim",
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "First matching user",
+            data: user,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+### findFirstOrThrow():
+Same as findFirst() but throws error if no match found
+
+```js
+app.get("/users/first", async (_req: Request, res: Response) => {
+    try {
+        const user = await prisma.user.findFirstOrThrow({
+            where: {
+                name: "Tamim",
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User found",
+            data: user,
+        });
+
+    } catch (error: any) {
+        res.status(404).send({
+            success: false,
+            message: "No user found",
+        });
+    }
+});
+```
+
+### count():
+Returns number of records
+
+```js
+app.get("/users/count", async (_req: Request, res: Response) => {
+    try {
+        const count = await prisma.user.count();
+
+        res.send({
+            success: true,
+            message: "User count fetched",
+            data: count,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+### Common read options:
+#### WHERE: 
+| SQL Meaning | Prisma Operator | Example                |
+| ----------- | --------------- | ---------------------- |
+| =           | direct value    | `where: { age: 20 }`   |
+| !=          | `not`           | `{ age: { not: 20 } }` |
+| >           | `gt`            | `{ age: { gt: 18 } }`  |
+| <           | `lt`            | `{ age: { lt: 30 } }`  |
+| >=          | `gte`           | `{ age: { gte: 18 } }` |
+| <=          | `lte`           | `{ age: { lte: 30 } }` |
+
+| SQL Meaning | Prisma Operator | Example                         |
+| ----------- | --------------- | ------------------------------- |
+| IN          | `in`            | `{ id: { in: [1,2,3] } }`       |
+| NOT IN      | `notIn`         | `{ id: { notIn: [1,2] } }`      |
+| BETWEEN     | `gte + lte`     | `{ age: { gte: 10, lte: 20 } }` |
+
+
+| SQL Meaning              | Prisma Operator       | Example                                              |
+| ------------------------ | --------------------- | ---------------------------------------------------- |
+| LIKE %text%              | `contains`            | `{ name: { contains: "tam" } }`                      |
+| LIKE text%               | `startsWith`          | `{ name: { startsWith: "Ta" } }`                     |
+| LIKE %text               | `endsWith`            | `{ name: { endsWith: "im" } }`                       |
+| ILIKE (case-insensitive) | `mode: "insensitive"` | `{ name: { contains: "tam", mode: "insensitive" } }` |
+
+
+| Meaning     | Prisma Operator | Example                    |
+| ----------- | --------------- | -------------------------- |
+| IS NULL     | `equals: null`  | `{ email: null }`          |
+| IS NOT NULL | `not: null`     | `{ email: { not: null } }` |
+
+| Meaning           | Prisma Operator                | Example                               |
+| ----------------- | ------------------------------ | ------------------------------------- |
+| Has value in list | `has` / `hasEvery` / `hasSome` | `{ tags: { has: "js" } }`             |
+| Contains all      | `hasEvery`                     | `{ tags: { hasEvery: ["js","ts"] } }` |
+| Contains any      | `hasSome`                      | `{ tags: { hasSome: ["js","ts"] } }`  |
+
+
+- Comparison Filters: 
+```sql
+where: {
+    age: {
+        gt: 18,
+        lt: 30,
+        gte: 18,
+        lte: 30,
+        not: 25
+    }
+}
+```
+
+- Multiple conditions (AND / OR / NOT): 
+```sql
+where: {
+    AND: [
+        { age: { gte: 18 } },
+        { name: { contains: "a" } }
+    ]
+}
+```
+```sql
+where: {
+    OR: [
+        { name: "Tamim" },
+        { name: "John" }
+    ]
+}
+```
+```sql
+where: {
+    NOT: {
+        name: "Tamim"
+    }
+}
+```
+- IN / NOT IN: 
+
+```sql
+where: {
+    name: {
+        in: ["A", "B", "C"],
+        notIn: ["X", "Y"]
+    }
+}
+```
+
+- Pattern Matching: 
+
+```sql
+where: {
+    name: {
+        contains: "tam",
+        startsWith: "Ta",
+        endsWith: "im",
+        mode: "insensitive"
+    }
+}
+```
+
+#### orderBy: 
+```sql
+orderBy: {
+    age: "asc"
+}
+```
+
+```sql
+orderBy: {
+    age: "desc"
+}
+```
+
+```sql
+orderBy: [
+    { age: "desc" },
+    { name: "asc" }
+]
+```
+
+#### take and skip: 
+
+```sql
+const page = 2;
+const limit = 10;
+
+await prisma.user.findMany({
+    skip: (page - 1) * limit,
+    take: limit
+});
+```
+#### DISTINCT: 
+
+```sql
+distinct: ["name"]
+```
+
+### aggregate():
+In Prisma, aggregation is done using:
+- aggregate()
+- groupBy()
+- _count, _sum, _avg, _min, _max
+
+
+```sql
+const result = await prisma.user.aggregate({
+  _count: true,
+  _avg: {
+    age: true,
+    salary: true,
+  },
+  _sum: {
+    salary: true,
+  },
+  _min: {
+    age: true,
+  },
+  _max: {
+    age: true,
+  },
+});
+
+-- output 
+{
+  _count: 10,
+  _avg: { age: 25, salary: 50000 },
+  _sum: { salary: 500000 },
+  _min: { age: 18 },
+  _max: { age: 40 }
+}
+```
+
+```sql
+const result = await prisma.user.aggregate({
+  where: {
+    age: {
+      gt: 20,
+    },
+  },
+  _avg: {
+    salary: true,
+  },
+});
+```
+
+- groupBy(): 
+  
+```sql
+const result = await prisma.user.groupBy({
+  by: ['age'],
+  _count: {
+    _all: true,
+  },
+  _avg: {
+    salary: true,
+  },
+});
+
+-- output
+[
+  {
+    age: 20,
+    _count: { _all: 3 },
+    _avg: { salary: 40000 },
+  },
+  {
+    age: 25,
+    _count: { _all: 5 },
+    _avg: { salary: 60000 },
+  },
+]
+```
+
+with having: 
+
+```sql
+const result = await prisma.user.groupBy({
+  by: ['age'],
+  _count: {
+    _all: true,
+  },
+  having: {
+    age: {
+      gt: 20,
+    },
+  },
+});
+
+```
+
+```sql
+const result = await prisma.user.groupBy({
+  by: ['age'],
+  _count: {
+    _all: true,
+  },
+  orderBy: {
+    age: 'asc',
+  },
+});
+```
