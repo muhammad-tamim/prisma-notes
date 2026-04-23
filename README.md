@@ -30,6 +30,21 @@
       - [take and skip:](#take-and-skip)
       - [DISTINCT:](#distinct)
     - [aggregate():](#aggregate)
+  - [Update(PATCH/PUT):](#updatepatchput)
+    - [PATCH (partial update - recommended):](#patch-partial-update---recommended)
+      - [update():](#update)
+      - [updateMany():](#updatemany)
+    - [PUT:](#put)
+      - [upsert():](#upsert)
+    - [Update Operators:](#update-operators)
+  - [Update(PATCH/PUT):](#updatepatchput-1)
+    - [PATCH (partial update - recommended):](#patch-partial-update---recommended-1)
+      - [update():](#update-1)
+      - [updateMany():](#updatemany-1)
+      - [PATCH Operators:](#patch-operators)
+    - [PUT:](#put-1)
+      - [upsert():](#upsert-1)
+  - [DELETE(DELETE):](#deletedelete)
 
 # Setup and Installation: 
 - Step 1: Install dependencies
@@ -877,3 +892,220 @@ const result = await prisma.user.groupBy({
   },
 });
 ```
+
+## Update(PATCH/PUT):
+### PATCH (partial update - recommended):
+
+#### update(): 
+Updates a record partially. Only fields you pass will be updated.
+
+```js
+app.patch("/users/:id", async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const { name, email, age } = req.body;
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: {
+                ...(name !== undefined && { name }),
+                ...(email !== undefined && { email }),
+                ...(age !== undefined && { age }),
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User updated",
+            data: user,
+        });
+
+    } catch (error) {
+        res.status(404).send({
+            success: false,
+            message: "User not found",
+        });
+    }
+});
+```
+
+#### updateMany(): 
+Updates multiple records matching a condition.
+
+```js
+app.patch("/users", async (req: Request, res: Response) => {
+    try {
+        const { role } = req.body;
+
+        const result = await prisma.user.updateMany({
+            where: { isActive: true },
+            data: {
+                role,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "Users updated",
+            count: result.count,
+        });
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: "Update failed",
+        });
+    }
+});
+```
+
+
+### PUT: 
+
+#### upsert(): 
+Update if exists, otherwise create
+```js
+app.patch("/users/upsert/:email", async (req: Request, res: Response) => {
+    try {
+        const email = req.params.email;
+        const { name } = req.body;
+
+        const user = await prisma.user.upsert({
+            where: { email },
+            update: { name },
+            create: {
+                email,
+                name,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User upserted",
+            data: user,
+        });
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: "Upsert failed",
+        });
+    }
+});
+```
+
+### Update Operators: 
+
+## Update(PATCH/PUT):
+### PATCH (partial update - recommended):
+
+#### update(): 
+Updates a record partially. Only fields you pass will be updated.
+
+```js
+app.patch("/users/:id", async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const { name, email, age } = req.body;
+
+        const user = await prisma.user.update({
+            where: { id },
+            data: {
+                ...(name !== undefined && { name }),
+                ...(email !== undefined && { email }),
+                ...(age !== undefined && { age }),
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User updated",
+            data: user,
+        });
+
+    } catch (error) {
+        res.status(404).send({
+            success: false,
+            message: "User not found",
+        });
+    }
+});
+```
+
+#### updateMany(): 
+Updates multiple records matching a condition.
+
+```js
+app.patch("/users", async (req: Request, res: Response) => {
+    try {
+        const { role } = req.body;
+
+        const result = await prisma.user.updateMany({
+            where: { isActive: true },
+            data: {
+                role,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "Users updated",
+            count: result.count,
+        });
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: "Update failed",
+        });
+    }
+});
+```
+
+#### PATCH Operators: 
+| Operation    | Prisma Syntax                      | Description             |
+| ------------ | ---------------------------------- | ----------------------- |
+| Set value    | `field: value` OR `{ set: value }` | Replace field value     |
+| Increment    | `{ increment: number }`            | Increase numeric value  |
+| Decrement    | `{ decrement: number }`            | Decrease numeric value  |
+| Multiply     | `{ multiply: number }`             | Multiply numeric value  |
+| Divide       | `{ divide: number }`               | Divide numeric value    |
+| Push (array) | `{ push: value }`                  | Add item to array       |
+| Set array    | `{ set: [...] }`                   | Replace entire array    |
+| Unset / null | `field: null`                      | Remove value (set NULL) |
+
+
+### PUT: 
+
+#### upsert(): 
+Update if exists, otherwise create
+```js
+app.patch("/users/upsert/:email", async (req: Request, res: Response) => {
+    try {
+        const email = req.params.email;
+        const { name } = req.body;
+
+        const user = await prisma.user.upsert({
+            where: { email },
+            update: { name },
+            create: {
+                email,
+                name,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User upserted",
+            data: user,
+        });
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: "Upsert failed",
+        });
+    }
+});
+```
+
+
+
+
+## DELETE(DELETE):
