@@ -6,6 +6,9 @@
   - [What is Prisma:](#what-is-prisma)
   - [What is ORM and ODM:](#what-is-orm-and-odm)
   - [Difference between Prisma and Mongoose:](#difference-between-prisma-and-mongoose)
+- [Schema:](#schema)
+  - [Common Data Types:](#common-data-types)
+  - [Common Column Constraints:](#common-column-constraints)
 
 # Setup and Installation: 
 ## Express + PostgreSQL + Prisma + TS
@@ -225,4 +228,97 @@ Note:  Prisma also supports NoSQL databases like MongoDB but Mongoose ODM is onl
 | Schema Approach | Schema-first (defined in Prisma schema file)   | Schema-on-top (defined in code)            |
 | Type Safety     | Strong (auto-generated TypeScript types)       | Limited (requires manual TypeScript setup) |
 | Migrations      | Built-in (Prisma Migrate)                      | Not built-in                               |
+
+# Schema: 
+
+## Common Data Types: 
+| Prisma Type | Description                   | Example Use Case      | Notes                      |
+| ----------- | ----------------------------- | --------------------- | -------------------------- |
+| `String`    | Text data                     | name, email           | Maps to VARCHAR/TEXT       |
+| `Int`       | Integer numbers               | age, count            | 32-bit                     |
+| `BigInt`    | Large integers                | large counters, IDs   | Use for high-scale systems |
+| `Float`     | Decimal numbers (approximate) | ratings, percentages  | ⚠️ Not for money            |
+| `Decimal`   | Precise decimal               | price, financial data | ✅ Best for money           |
+| `Boolean`   | true/false                    | isActive              | Simple flag                |
+| `DateTime`  | Date + time                   | createdAt             | ISO format                 |
+| `Json`      | JSON object                   | metadata, configs     | Flexible but risky         |
+| `Bytes`     | Binary data                   | file storage          | Rare use                   |
+| `Enum`      | Fixed values                  | role, status          | Safer than String          |
+
+```sql
+enum ProductStatus {
+  AVAILABLE
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  stock       Int
+  bigCounter  BigInt
+
+  price       Decimal
+  rating      Float
+
+  isActive    Boolean  @default(true)
+
+  metadata    Json
+
+  image       Bytes?
+
+  status      ProductStatus
+
+  createdAt   DateTime @default(now())
+}
+```
+
+
+## Common Column Constraints: 
+
+| Constraint           | Syntax         | Purpose                   |
+| -------------------- | -------------- | ------------------------- |
+| Primary Key          | `@id`          | Uniquely identifies a row |
+| Default Value        | `@default()`   | Sets default value        |
+| Unique               | `@unique`      | Prevent duplicate values  |
+| Optional (NULL)      | `?`            | Allows null               |
+| Updated At           | `@updatedAt`   | Auto-update timestamp     |
+| Relation             | `@relation()`  | Foreign key mapping       |
+| Map (DB column name) | `@map()`       | Rename column in DB       |
+| Native Type          | `@db.*`        | DB-specific type          |
+| Composite ID         | `@@id([])`     | Multi-column primary key  |
+| Composite Unique     | `@@unique([])` | Multi-column unique       |
+| Index                | `@@index([])`  | Improve query performance |
+| Map Table Name       | `@@map()`      | Rename table in DB        |
+
+```sql
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+
+  age       Int      @default(18)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts     Post[]
+
+  @@index([email])
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([authorId])
+}
+```
 
