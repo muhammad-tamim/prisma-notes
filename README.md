@@ -9,17 +9,16 @@
 - [Schema:](#schema)
   - [Common Data Types:](#common-data-types)
   - [Common Column Constraints:](#common-column-constraints)
+- [CRUD Operations:](#crud-operations)
 
 # Setup and Installation: 
 ## Express + PostgreSQL + Prisma + TS
 - Step 1: Install dependencies
+
 ```bash
 npm init -y
 npm i express pg dotenv @prisma/client @prisma/adapter-pg
 npm i -D typescript tsx prisma @types/node @types/express @types/pg 
-```
-
-```bash
 npx tsc --init
 ```
 
@@ -86,22 +85,12 @@ datasource db {
 
 model User { 
   id    Int     @id @default(autoincrement()) 
-  email String  @unique
   name  String?
-  posts Post[]
-} 
-
-model Post { 
-  id        Int     @id @default(autoincrement()) 
-  title     String
-  content   String?
-  published Boolean @default(false) 
-  author    User    @relation(fields: [authorId], references: [id]) 
-  authorId  Int
+  email String  @unique
 } 
 ```
 
-step 6: Create and apply your first migration: 
+- step 6: Create and apply your first migration: 
 
 Create and apply your first migration
 
@@ -133,60 +122,47 @@ const prisma = new PrismaClient({ adapter });
 export { prisma };
 ```
 
-- step 8: Write your first query: 
+- step 8: use this boilerplate code to test setup: 
 
 ```ts
-// script.ts
+import express, { Request, Response } from "express";
+import dotenv from "dotenv";
+import path from "path";
 import { prisma } from "./lib/prisma";
 
-async function main() {
-  // Create a new user with a post
-  const user = await prisma.user.create({
-    data: {
-      name: "Alice",
-      email: "alice@prisma.io",
-      posts: {
-        create: {
-          title: "Hello World",
-          content: "This is my first post!",
-          published: true,
-        },
-      },
-    },
-    include: {
-      posts: true,
-    },
-  });
-  console.log("Created user:", user);
+dotenv.config({ path: path.join(process.cwd(), ".env") });
 
-  // Fetch all users with their posts
-  const allUsers = await prisma.user.findMany({
-    include: {
-      posts: true,
-    },
-  });
-  console.log("All users:", JSON.stringify(allUsers, null, 2));
-}
+const app = express();
+app.use(express.json());
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+const port = process.env.PORT || 3000;
+
+
+app.get("/", (req: Request, res: Response) => {
+    res.send("Prisma + PostgreSQL + TypeScript API is running!");
+});
+
+
+
+/*
+add all crud routes here
+*/
+
+
+
+app.use((req: Request, res: Response) => {
+    res.status(404).send({
+        error: "Route not found",
+        path: req.path,
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
 ```
 
-
-Run the script, You should see the created user and all users printed to the console!
-
-```bash
-npx tsx script.ts
-```
-
-step 9: Explore your data with Prisma Studio
+step 9: We can explore our data with Prisma Studio
 
 ```bash
 npx prisma studio
@@ -322,3 +298,4 @@ model Post {
 }
 ```
 
+# CRUD Operations: 
