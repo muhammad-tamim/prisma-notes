@@ -45,6 +45,8 @@
     - [PUT:](#put-1)
       - [upsert():](#upsert-1)
   - [DELETE(DELETE):](#deletedelete)
+    - [delete():](#delete)
+    - [deleteMany():](#deletemany)
 
 # Setup and Installation: 
 - Step 1: Install dependencies
@@ -1109,3 +1111,54 @@ app.patch("/users/upsert/:email", async (req: Request, res: Response) => {
 
 
 ## DELETE(DELETE):
+### delete(): 
+
+```js
+app.delete("/users/:id", async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+
+        const user = await prisma.user.delete({
+            where: { id },
+        });
+
+        res.send({
+            success: true,
+            message: "User deleted",
+            data: user,
+        });
+
+    } catch (error) {
+        res.status(404).send({
+            success: false,
+            message: "User not found",
+        });
+    }
+});
+```
+
+### deleteMany(): 
+
+```js
+app.delete("/users", async (req: Request, res: Response) => {
+    try {
+        const result = await prisma.user.deleteMany({
+            where: {
+                isActive: false,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "Users deleted",
+            count: result.count,
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: "Delete failed",
+        });
+    }
+});
+```
