@@ -1,7 +1,6 @@
 <h1 align="center">Prisma Notes</h1>
 
 - [Setup and Installation:](#setup-and-installation)
-  - [Express + PostgreSQL + Prisma + TS](#express--postgresql--prisma--ts)
 - [Introduction:](#introduction)
   - [What is Prisma:](#what-is-prisma)
   - [What is ORM and ODM:](#what-is-orm-and-odm)
@@ -10,9 +9,16 @@
   - [Common Data Types:](#common-data-types)
   - [Common Column Constraints:](#common-column-constraints)
 - [CRUD Operations:](#crud-operations)
+  - [Create(POST):](#createpost)
+    - [create():](#create)
+    - [createMany():](#createmany)
+    - [createManyAndReturn():](#createmanyandreturn)
+    - [Create Options:](#create-options)
+      - [Select:](#select)
+      - [include:](#include)
+      - [skipDuplicates (Only for createMany):](#skipduplicates-only-for-createmany)
 
 # Setup and Installation: 
-## Express + PostgreSQL + Prisma + TS
 - Step 1: Install dependencies
 
 ```bash
@@ -49,6 +55,12 @@ here,
 {
   "type": "module"
 }
+"scripts": {
+    "dev": "tsx watch ./index.ts",
+    "build": "tsc",
+    "start": "node ./dist/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+},
 ```
 
 - Step 3:  Initialize Prisma ORM: 
@@ -299,3 +311,156 @@ model Post {
 ```
 
 # CRUD Operations: 
+
+## Create(POST):
+
+### create():
+
+```js
+app.post("/users", async (req: Request, res: Response) => {
+    try {
+        const { name, email } = req.body;
+
+        const user = await prisma.user.create({
+            data: {
+                name,
+                email,
+            },
+        });
+
+        res.send({
+            success: true,
+            message: "User created successfully",
+            data: user,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+### createMany():
+
+```js
+app.post("/users/bulk", async (req: Request, res: Response) => {
+    try {
+        const users = req.body.users;
+
+        const result = await prisma.user.createMany({
+            data: users,
+            skipDuplicates: true,
+        });
+
+        res.send({
+            success: true,
+            message: "Users created successfully",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+Note: skipDuplicates is not supported on MongoDB, SQLServer, or SQLite.
+
+### createManyAndReturn():
+
+```js
+app.post("/users/bulk-return", async (req: Request, res: Response) => {
+    try {
+        const users = req.body.users;
+
+        const result = await prisma.user.createManyAndReturn({
+            data: users,
+            skipDuplicates: true,
+        });
+
+        res.send({
+            success: true,
+            message: "Users created and returned successfully",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+```
+
+Note: Supported only PostgreSQL, CockroachDB, and SQLite.
+
+### Create Options: 
+#### Select: 
+Controls what fields we get back from DB
+
+```js
+await prisma.user.create({
+    data: {
+        name,
+        email
+    },
+    select: {
+        id: true,
+        name: true,
+    },
+});
+```
+
+#### include: 
+Controls what related records we get back from DB
+
+```js
+await prisma.user.create({
+    data: {
+        name, 
+        email
+    },
+    include: {
+        posts: true,
+    },
+});
+```
+
+```js
+await prisma.user.create({
+    data: {
+        name,
+        email,
+    },
+    include: {
+        posts: {
+            select: {
+                id: true,
+                title: true,
+            },
+        },
+    },
+});
+```
+
+#### skipDuplicates (Only for createMany):
+Skip records with duplicate unique fields
+
+```js
+await prisma.user.createMany({
+  data: [
+    { name: "Bob", email: "bob@prisma.io" },
+    { name: "Yewande", email: "bob@prisma.io" },
+  ],
+  skipDuplicates: true,
+});
+```
+
+here, only one data will be created
