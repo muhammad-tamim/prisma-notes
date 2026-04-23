@@ -1,0 +1,98 @@
+<h1 align="center">Prisma Notes</h1>
+
+
+- [Prisma Schema:](#prisma-schema)
+  - [Models:](#models)
+  - [Fields & Types:](#fields--types)
+  - [Relations:](#relations)
+    - [One-to-One](#one-to-one)
+    - [One-to-Many](#one-to-many)
+    - [Many-to-Many](#many-to-many)
+  - [Enums:](#enums)
+  - [Indexes & Constraints:](#indexes--constraints)
+
+- [Schema Attributes & Field Attributes:](#schema-attributes--field-attributes)
+  - [@id](#id)
+  - [@default](#default)
+  - [@unique](#unique)
+  - [@updatedAt](#updatedat)
+  - [@map / @@map](#map--map)
+  - [@relation](#relation)
+  - [@@index](#index)
+  - [@@unique](#unique-1)
+
+- [Migrations (VERY IMPORTANT):](#migrations-very-important)
+  - [prisma migrate dev](#prisma-migrate-dev)
+  - [prisma migrate deploy](#prisma-migrate-deploy)
+  - [prisma db push](#prisma-db-push)
+  - [Schema Sync vs Migration Strategy](#schema-sync-vs-migration-strategy)
+
+- [Seeding Database:](#seeding-database)
+
+- [Prisma Client (Core Usage):](#prisma-client-core-usage)
+
+- [CRUD Operations:](#crud-operations)
+  - [Create (POST):](#create-post)
+    - [create()](#create)
+    - [createMany()](#createmany)
+  - [Read (GET):](#read-get)
+    - [findMany()](#findmany)
+    - [findUnique()](#findunique)
+    - [findFirst()](#findfirst)
+    - [select](#select)
+    - [include (relations)](#include-relations)
+    - [pagination (skip, take)](#pagination-skip-take)
+    - [orderBy](#orderby)
+    - [distinct](#distinct)
+    - [count()](#count)
+  - [Update (PATCH/PUT):](#update-patchput)
+    - [update()](#update)
+    - [updateMany()](#updatemany)
+    - [upsert()](#upsert)
+  - [Delete:](#delete)
+    - [delete()](#delete-1)
+    - [deleteMany()](#deletemany)
+
+- [Filtering & Querying:](#filtering--querying)
+  - [where conditions](#where-conditions)
+  - [AND / OR / NOT](#and--or--not)
+  - [Nested filtering (relations)](#nested-filtering-relations)
+
+- [Relations in Queries:](#relations-in-queries)
+  - [include vs select](#include-vs-select)
+  - [Nested writes](#nested-writes)
+
+- [Transactions:](#transactions)
+  - [$transaction()](#transaction)
+  - [Batch Queries](#batch-queries)
+
+- [Aggregation & Grouping:](#aggregation--grouping)
+  - [aggregate()](#aggregate)
+  - [groupBy()](#groupby)
+
+- [Raw Queries (Advanced):](#raw-queries-advanced)
+  - [$queryRaw](#queryraw)
+  - [$executeRaw](#executeraw)
+
+- [Validation & Constraints:](#validation--constraints)
+  - [Database-level validation](#database-level-validation)
+  - [Application-level validation (Zod / custom)](#application-level-validation-zod--custom)
+
+- [Error Handling:](#error-handling)
+  - [Prisma Errors](#prisma-errors)
+  - [Handling Unique Constraints](#handling-unique-constraints)
+
+- [Performance Optimization:](#performance-optimization)
+  - [select vs include](#select-vs-include)
+  - [Avoiding N+1 queries](#avoiding-n1-queries)
+  - [Indexing strategy](#indexing-strategy)
+
+- [Best Practices:](#best-practices)
+  - [Folder Structure](#folder-structure)
+  - [Prisma Singleton (important for dev)](#prisma-singleton-important-for-dev)
+  - [Environment Management](#environment-management)
+
+- [Common Differences (Prisma vs Mongoose):](#common-differences-prisma-vs-mongoose)
+  - [Schema-first vs Schema-less](#schema-first-vs-schema-less)
+  - [SQL vs NoSQL mindset](#sql-vs-nosql-mindset)
+  - [Relations vs Population](#relations-vs-population)
